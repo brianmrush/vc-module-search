@@ -346,18 +346,25 @@ namespace VirtoCommerce.SearchModule.Data.Services
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var ttStart_GetDocumentsAsync = DateTime.Now;
             var primaryDocuments = (await primaryDocumentBuilder.GetDocumentsAsync(documentIds))
                 ?.Where(d => d != null)
                 .ToList();
+            _log?.LogInformation($@"=============================  primaryDocumentBuilder.GetDocumentsAsync {DateTime.Now.Subtract(ttStart_GetDocumentsAsync)}");
+
 
             if (primaryDocuments?.Any() == true)
             {
                 if (secondaryDocumentBuilders != null)
                 {
                     var primaryDocumentIds = primaryDocuments.Select(d => d.Id).ToArray();
+                    var ttStart_GetSecondaryDocumentsAsync = DateTime.Now;
                     var secondaryDocuments = await GetSecondaryDocumentsAsync(secondaryDocumentBuilders, primaryDocumentIds, cancellationToken);
+                    _log?.LogInformation($@"=============================  GetSecondaryDocumentsAsync {DateTime.Now.Subtract(ttStart_GetSecondaryDocumentsAsync)}");
 
+                    var ttStart_MergeDocuments = DateTime.Now;
                     MergeDocuments(primaryDocuments, secondaryDocuments);
+                    _log?.LogInformation($@"=============================  MergeDocuments {DateTime.Now.Subtract(ttStart_MergeDocuments)}");
                 }
 
                 // Add system fields
