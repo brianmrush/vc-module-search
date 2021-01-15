@@ -273,10 +273,10 @@ namespace VirtoCommerce.SearchModule.Data.Services
 
             var ttStart_GetDocumentsAsync = DateTime.Now;
             var documents = await GetDocumentsAsync(documentIds, primaryDocumentBuilder, secondaryDocumentBuilders, cancellationToken);
-            _log.LogInformation($@"===============================  GetDocumentsAsync {DateTime.Now.Subtract(ttStart_GetDocumentsAsync)}");
+            _log?.LogInformation($@"===============================  GetDocumentsAsync {DateTime.Now.Subtract(ttStart_GetDocumentsAsync)}");
             var ttStart_IndexAsync = DateTime.Now;
             var response = await _searchProvider.IndexAsync(documentType, documents);;
-            _log.LogInformation($@"===============================  _searchProvider.IndexAsync {DateTime.Now.Subtract(ttStart_IndexAsync)}");
+            _log?.LogInformation($@"===============================  _searchProvider.IndexAsync {DateTime.Now.Subtract(ttStart_IndexAsync)}");
             return response;
         }
 
