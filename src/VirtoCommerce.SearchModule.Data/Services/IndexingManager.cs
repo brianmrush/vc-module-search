@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VirtoCommerce.Platform.Core.Common;
 using VirtoCommerce.Platform.Core.Settings;
@@ -22,9 +23,10 @@ namespace VirtoCommerce.SearchModule.Data.Services
         private readonly ISettingsManager _settingsManager;
         private readonly IIndexingWorker _backgroundWorker;
         private readonly SearchOptions _searchOptions;
+        private readonly ILogger<IndexingManager> _log;
 
         public IndexingManager(ISearchProvider searchProvider, IEnumerable<IndexDocumentConfiguration> configs, IOptions<SearchOptions> searchOptions,
-            ISettingsManager settingsManager = null, IIndexingWorker backgroundWorker = null)
+            ISettingsManager settingsManager = null, IIndexingWorker backgroundWorker = null, ILogger<IndexingManager> log =null)
         {
             if (searchProvider == null)
                 throw new ArgumentNullException(nameof(searchProvider));
@@ -36,6 +38,7 @@ namespace VirtoCommerce.SearchModule.Data.Services
             _configs = configs;
             _settingsManager = settingsManager;
             _backgroundWorker = backgroundWorker;
+            _log = log;
         }
 
         public virtual async Task<IndexState> GetIndexStateAsync(string documentType)
@@ -268,8 +271,12 @@ namespace VirtoCommerce.SearchModule.Data.Services
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var ttStart_GetDocumentsAsync = DateTime.Now;
             var documents = await GetDocumentsAsync(documentIds, primaryDocumentBuilder, secondaryDocumentBuilders, cancellationToken);
-            var response = await _searchProvider.IndexAsync(documentType, documents);
+            _log.LogInformation($@"===============================  GetDocumentsAsync {DateTime.Now.Subtract(ttStart_GetDocumentsAsync)}");
+            var ttStart_IndexAsync = DateTime.Now;
+            var response = await _searchProvider.IndexAsync(documentType, documents);;
+            _log.LogInformation($@"===============================  _searchProvider.IndexAsync {DateTime.Now.Subtract(ttStart_IndexAsync)}");
             return response;
         }
 
